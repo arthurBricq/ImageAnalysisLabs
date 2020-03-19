@@ -34,6 +34,8 @@ def plotEdgeMap(edgeMap):
     fig, ax = plt.subplots(1, 1, figsize=(6, 6))
     ax.imshow(edgeMap, cmap='gray')
     ax.set_title('Contours ({} px, {} px)'.format(nx, ny))
+
+    
     
 ### LABELIZATION ALGORITHM
 # This is the algorithm that groups pixels within parts of the picture where the boundary is closed.
@@ -220,9 +222,74 @@ def gradient_sobel(img):
     
     return (G, Phi)
 
+### FUNCTIONS FOR REGION GROWING
 
+def homogeneityCond(pixel,neighbour,maxdiff):
+    """
+    Condition for homogeneity. used for regionGrowing.
+    """
+    return np.abs(int(pixel)-int(neighbour))<maxdiff
 
-
+def regionGrowing(image, start_coord, maxdiff,dynamic_homogeneity=False):
+    """
+    Does the region growing from start_coord in image, with 4-connectivity.
+    Homogeneity condition is either dynamic : comparison of pixel value to its neighbour
+        or static : comparison of pixel value to value of pixel of start_coord
+        maxdiff is the maximum difference between the two pixel values
+    """
+    im_w,im_h=image.shape
+    visitedPoints = np.zeros(shape=(im_h,im_w))
+    region_size = 1
+    buffer = [start_coord]
+    while len(buffer) > 0:
+        
+        x,y = buffer[0]
+        if (x>=256 or x<0 or y>=256 or y<0): 
+            continue
+        visitedPoints[x,y] = 1
+        #print ("point x, y :", x, "  ",y)
+        #print (buffer)
+        buffer = buffer[1:]
+        if dynamic_homogeneity :
+            if  homogeneityCond(image[x, y],image[x-1,y],maxdiff):
+                if visitedPoints[x-1,y]==0 and (x-1,y) not in buffer :
+                    buffer.append((x-1,y))
+                    region_size+=1
+            if homogeneityCond(image[x, y],image[x+1,y],maxdiff) :
+                if visitedPoints[x+1,y]==0 and (x+1,y) not in buffer :
+                    buffer.append((x+1,y))
+                    region_size+=1
+            if homogeneityCond(image[x, y],image[x,y-1],maxdiff) :
+                if visitedPoints[x,y-1]==0 and (x,y-1) not in buffer :
+                    buffer.append((x,y-1))
+                    region_size+=1
+            if homogeneityCond(image[x, y],image[x,y+1],maxdiff) :
+                if visitedPoints[x,y+1]==0 and (x,y+1) not in buffer :
+                    buffer.append((x,y+1))
+                    region_size+=1
+        else :
+            if  homogeneityCond(image[start_coord],image[x-1,y],maxdiff):
+                if visitedPoints[x-1,y]==0 and (x-1,y) not in buffer :
+                    buffer.append((x-1,y))
+                    region_size+=1
+            if homogeneityCond(image[start_coord],image[x+1,y],maxdiff) :
+                if visitedPoints[x+1,y]==0 and (x+1,y) not in buffer :
+                    buffer.append((x+1,y))
+                    region_size+=1
+            if homogeneityCond(image[start_coord],image[x,y-1],maxdiff) :
+                if visitedPoints[x,y-1]==0 and (x,y-1) not in buffer :
+                    buffer.append((x,y-1))
+                    region_size+=1
+            if homogeneityCond(image[start_coord],image[x,y+1],maxdiff) :
+                if visitedPoints[x,y+1]==0 and (x,y+1) not in buffer :
+                    buffer.append((x,y+1))
+                    region_size+=1       
+    plt.figure()
+    plt.imshow(image)
+    plt.imshow(visitedPoints, alpha=0.5)
+    print ("Region size : ",region_size)
+    print ("Ratio : ",region_size/im_w/im_h)
+    return region_size
 
 
 
