@@ -7,6 +7,8 @@ Created on Thu Mar 26 18:14:26 2020
 
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
+sys.path.append("..")
 
 import lab02_functions as functions
 import skimage, skimage.feature, skimage.morphology
