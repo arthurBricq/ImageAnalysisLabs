@@ -8,6 +8,7 @@ Created on Thu Mar 26 17:59:45 2020
 import skimage.io
 import matplotlib.pyplot as plt
 import os
+import numpy as np 
 
 #%% Functions to get the data
 
@@ -29,3 +30,22 @@ def get_ones():
     ones_im = skimage.io.concatenate_images(ic)
     
     return ones_im
+
+def get_outmost_contour(img):
+    """
+    Image analysis lab 2
+    Returns the contour (outside contour) of the number (in grayscale) given as parameter
+    
+    Parameters
+    -----------
+    image : grayscale image of a number
+    
+    Returns 
+    -------
+    contour : [X,Y] np.array of all the pixels in the contour
+    
+    """
+    tmp = skimage.morphology.area_closing(img,area_threshold=100)
+    edgeMap = skimage.feature.canny(tmp)
+    [X,Y] = np.where(edgeMap)
+    return X,Y
