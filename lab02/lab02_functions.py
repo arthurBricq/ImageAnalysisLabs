@@ -5,6 +5,7 @@ Created on Thu Mar 26 17:59:45 2020
 @author: abric
 """
 
+
 import skimage.io
 import matplotlib.pyplot as plt
 import os
@@ -40,44 +41,35 @@ def get_contour_image(contour):
     im = np.zeros((28, 28))     
     im[X,Y] = 1 
     return im
-    
-    
 
 #%% Edge extraction methods
 
-def get_outmost_contour(img, starting_index = 0):
+def get_outmost_contour(img):
     """
-    Image analysis lab 2
+    Image analysis lab 2 \n
     Returns the ordered contour (outside contour) of the number (in grayscale) given as parameter
-    
-    Parameters
-    -----------
-    image : grayscale image of a number
-    
-    Returns 
-    -------
-    contour : ordered [X,Y] np.array of all the pixels in the contour
+
+    :param img:  grayscale image of a number
+
+    :return: ordered [X,Y] np.array of all the pixels in the contour
     
     """
     tmp = skimage.morphology.area_closing(img,area_threshold=250)
     edgeMap = skimage.feature.canny(tmp)
     [X,Y] = np.where(edgeMap)
-    return get_ordered_contour([X,Y], starting_index)
+    return get_ordered_contour([X,Y], 0)
 
 
 def get_ordered_contour(contour, starting_index):
     """
-    Image analysis lab 2 - private method
+    Image analysis lab 2 - private method \n
     This function orders a given contour so that it is sorted in a way that every point is touching in the actual picture his neighboors.
     
-    Parameters
-    ------------
-    contour : [X,Y] np.array of all the pixels in the contour
-    starting_index : index to get the first point of the array
-    
-    Returns
-    --------
-    contour : sorted [X,Y] np.array of all the pixels in the contour
+
+    :param contour: [X,Y] np.array of all the pixels in the contour
+    :param starting_index: index to get the first point of the array
+
+    :return: sorted [X,Y] np.array of all the pixels in the contour
     
     """
     [X_old,Y_old] = contour
@@ -102,30 +94,47 @@ def get_ordered_contour(contour, starting_index):
     X, Y = np.array(X), np.array(Y)
     return [X,Y]
 
-    
-
 
 #%% Fourier Descriptors 
     
-def get_amplitude_first_descriptors(contour,n_descriptor):
+def get_amplitude_first_descriptors(contour, n_descriptor):
     """
+    Image analysis lab 2 \n
     Return the amplitude of the N first fourier descriptor for the given contour
-    
-    Parameters
-    ----------
-    contour : **ordered** [X,Y] arrays containing all the contour pixels
-    n_descriptors : number of the n first descriptors (or harmonics) to obtain the amplitudes of.
-    
-    RETURNS
-    --------
-    amplitudes : n * 1 array with the amplitudes of the n first descriptors, also in order
+
+    :param contour: ordered [X,Y] arrays containing all the contour pixels
+    :param n_descriptor: number of the n first descriptors (or harmonics) to obtain the amplitudes of.
+
+    :return: n * 1 array with the amplitudes of the n first descriptors, also in order
     """
     [X,Y] = contour
     signal = X + 1j * Y
     fourier = np.fft.fft(signal)
+    fourier = normalize_fourier(fourier)
+    
     amplitudes = np.abs(fourier)
     sorted_amplitudes = np.sort(amplitudes)
     toReturn = sorted_amplitudes[-n_descriptor:]
     toReturn = toReturn[np.arange(toReturn.size-1,-1,-1)]
     return toReturn
-    
+
+def normalize_fourier(fourier):
+    """
+    This function will perform a normalization of the Fourier Series.
+
+    Parameters
+    ----------
+    fourier :  ndarray
+        the fourier Series to be normalized
+
+    Returns
+    -------
+    out: ndarray
+        The normalized fourier Series
+    """
+    fourier[0] = 0
+    fourier = fourier / np.abs(fourier[1])
+    phi = np.angle(fourier[1])
+    fourier = [f * np.exp(-1j * phi * k) for k, f in enumerate(fourier)]
+    # fourier = np.fft.fftshift(fourier)
+    return fourier

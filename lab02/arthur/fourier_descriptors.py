@@ -2,9 +2,9 @@
 """
 Created on Thu Mar 26 17:54:36 2020
 
-@author: abric
+@author: abricq
 """
-
+import importlib
 import matplotlib.pyplot as plt
 import numpy as np 
 import sys
@@ -13,7 +13,9 @@ sys.path.append("..")
 import skimage.transform as transform
 import skimage, skimage.feature, skimage.morphology
 import lab02_functions as imPro
+importlib.reload(imPro)
 from numpy.fft import fft
+
 
 #%% Example of FFT
 
@@ -34,15 +36,12 @@ axs[0].plot(t,signal)
 axs[1].plot(freqs, amplitudes,'-')
 
 #%% Get the data to use
-
 zeros=imPro.get_zeros()
 ones = imPro.get_ones()
 
-
-#%% Illustration of utilisation of FFT with contour
-
+#%% Illustration of Fourier reconstruction with K harmonics
 img = ones[1]
-[X,Y] = imPro.get_outmost_contour(img, starting_index = 0)
+[X,Y] = imPro.get_outmost_contour(img)
 im_contour = imPro.get_contour_image([X,Y])
 
 signal = X + 1j * Y
@@ -64,13 +63,8 @@ axs[0].imshow(im_contour)
 axs[1].imshow(im_contour_hat)
 axs[2].plot(amplitudes,'x')
 
-
-#%% 
-
-
     
-#%% Try to do classification for all the pictures 
-    
+#%% Classification using FD
 amplitudes_zeros = []
 amplitudes_ones = []
 
@@ -83,7 +77,6 @@ for img in ones:
     contour = imPro.get_outmost_contour(img)
     amplitudes = imPro.get_amplitude_first_descriptors(contour, n_descriptor = 4)
     amplitudes_ones.append(amplitudes)
-    
 
 amplitudes_zeros = np.array(amplitudes_zeros)
 amplitudes_ones = np.array(amplitudes_ones)
@@ -92,21 +85,16 @@ fig, axs = plt.subplots(2,1, figsize = (8,12))
 
 axs[0].plot(amplitudes_zeros[:,0], amplitudes_zeros[:,1],'.b', label = 'zeros')
 axs[0].plot(amplitudes_ones[:,0], amplitudes_ones[:,1],'.r', label = 'ones')
-axs[0].set_xlabel('$A_1$')
-axs[0].set_ylabel('$A_2$')
-axs[0].set_title('Amplitude of Fourier descriptors 1 and 2')
+axs[0].set_xlabel('Highest amplitude')
+axs[0].set_ylabel('Second highest amplitude')
+axs[0].set_title('Amplitude of Fourier descriptors')
 axs[0].legend()
 
 axs[1].plot(amplitudes_zeros[:,0], amplitudes_zeros[:,2],'.b', label = 'zeros')
 axs[1].plot(amplitudes_ones[:,0], amplitudes_ones[:,2],'.r', label = 'ones')
-axs[1].set_xlabel('$A_1$')
-axs[1].set_ylabel('$A_3$')
-axs[1].set_title('Amplitude of Fourier descriptors 1 and 3')
+axs[1].set_xlabel('Second highest amplitude')
+axs[1].set_ylabel('Third highest amplitude')
+axs[1].set_title('Amplitude of Fourier descriptors')
 axs[1].legend()
 
-
-
-
-
-    
-    
+plt.show()
