@@ -4,18 +4,19 @@ Created on Sat Mar 28 15:59:03 2020
 
 @author: abric
 """
+
+import importlib
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-sys.path.append("..")
-
 import lab02_functions as imPro
 import skimage
 import skimage.transform
+from numpy.fft import fft
 
-# import matplotlib
-# matplotlib.use('Qt5Agg')
+sys.path.append("..")
+importlib.reload(imPro)
 
 # %% Get the image and the contour
 
