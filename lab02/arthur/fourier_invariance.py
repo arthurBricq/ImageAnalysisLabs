@@ -9,13 +9,14 @@ import importlib
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+sys.path.append("..")
+
 
 import lab02_functions as imPro
 import skimage
 import skimage.transform
 from numpy.fft import fft
 
-sys.path.append("..")
 importlib.reload(imPro)
 
 # %% Get the image and the contour
@@ -23,8 +24,8 @@ importlib.reload(imPro)
 zeros = imPro.get_zeros()
 ones = imPro.get_ones()
 
+# %% Helper function 
 
-# %%
 def plot_fourier_descriptors(fourier):
     fix, axs = plt.subplots(2, 1, figsize=(5, 5))
     axs[0].plot(np.abs(fourier))
@@ -36,7 +37,7 @@ def plot_fourier_descriptors(fourier):
 
 transform = skimage.transform.SimilarityTransform(scale=0.9)
 img1 = ones[1]
-img2 = skimage.transform.warp(img, transform)
+img2 = skimage.transform.warp(img1, transform)
 
 # Then compute the fourier transform
 [X1, Y1] = imPro.get_outmost_contour(img1)
@@ -59,6 +60,7 @@ axs[1].imshow(img2)
 plt.show()
 
 # %% Rotation matrix (the modulus is invarient anyway)
+
 theta = np.pi / 3
 R = np.array([[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]])
 
@@ -82,6 +84,7 @@ ax.legend()
 plt.show()
 
 # %% Scaling operation (the phase is invariant anyway)
+
 R = np.array([[1.2, 0],
               [0, 1.2]])
 
