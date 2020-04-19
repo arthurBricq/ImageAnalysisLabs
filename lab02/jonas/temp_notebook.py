@@ -65,11 +65,10 @@ def load_img_seq(file_path, format='.png'):
     img_seq = skimage.io.concatenate_images(ic)
     return img_seq
 
-
-def arr2vec(arr):
-    return arr.reshape((1,arr.size))
-
 def com(img):
+    ''' computes center of mass of image, taking pixel values as weights and x,y
+        pixel coordinates as the weights' position
+    '''
     nx,ny=img.shape
     mid_x=int(nx/2)
     mid_y=int(ny/2)
@@ -88,6 +87,8 @@ def com(img):
     return (x_M/M,y_M/M)
 
 def object_covar_mat(img):
+    '''
+    '''
     x_bar,y_bar=com(img)
     nx,ny=img.shape
     #generate x and y grids
@@ -143,13 +144,13 @@ def dist_map(img,direct_dist=3,diag_dist=4):
         for y in range(ny):
             nbh=get_nbh(out,x,y)
             nbh+=dist_m
-            out[x,y]=min(nbh[eval_forward])
+            out[x,y]=np.amin(nbh[eval_forward])
     #scan image backwards
     for x in range(nx-1,-1,-1):
         for y in range(ny-1,-1,-1):
             nbh=get_nbh(out,x,y)
             nbh+=dist_m
-            out[x,y]=min(nbh[eval_backward])
+            out[x,y]=np.amin(nbh[eval_backward])
 
     return out
 
@@ -176,11 +177,10 @@ for ax, im in zip(axes[1], skel_ones):
     ax.axis('off')
 # %% md
 ### Extract features
-# two features could be the two inertias along the principal axes od the object,
-# but by knowing that some _ones_ are more than just a line but have a given width
-# which is comparable with that of the _zeros_ one may not be able to distinguish
-# the two elements just by the inertia of the skeletons. So this may not be the
-# best features to extract
+# two features could be the two inertias along the principal axes of the object.
+# Knowing that some _ones_ are more than just a line and have a given width
+# which is comparable with that of the _zeros_, one may expect this features to fail when comparing the two classes.
+# So this may not be the best features to extract
 
 
 # %% codecell
@@ -197,9 +197,14 @@ for i in range(len(skel_zeros)):
     Lambda_ones.append(Lambda)
 
 # %% md
-### The Results of the Analysis:
+### Analysis:
 # As expected, the classes are not completly separable and overlap as we can see
-# in the plot below:
+# in the plot below. This means that those are not good features to separate this
+# two objects one from the other. Indeed the two _ones_ which are a bit larger are
+# confused with zeros wich are a bit slimmer... We can see from this that this approach would
+# probably work just fine if the _ones_ where all simple lines. Indeed, the ones
+# which are a line present the second inertia to be negligible compared to that of a
+# _zero_. Pruning the skeleton could improve the separation between the two classes
 
 # %% codecell
 #plot found values
@@ -226,12 +231,13 @@ plt.show()
 
 # %% md
 ### Other features:
-# other features, not considering the Fourier Descriptors, could be the fact that the
+# other features, leaving aside the Fourier Descriptors, could be the fact that the
 # _ones_ present no loop, wherease _zeros_ do. This however would pose problems
 # for the classification of other characters like _6_ and _8_ for example if
-# used as only feature. Other features like the distance to a reference char could be a
-# good option as well. As a first feature let's define a distance from a reference
-# object:
+# used as only feature. Additionally, features like the distance to a reference char could be a
+# good option as well. In the following code the approach of the realtive distance to
+# a give nreference image is used as feature. So the first step is to generate a
+# reference image and its dis map
 
 # %% codecell
 #read and plot reference images
@@ -262,7 +268,7 @@ ax[1].axis('off')
 #create and plot distance map
 zero_dist_map=dist_map(ref_zero.astype(int))
 one_dist_map=dist_map(ref_one.astype(int))
-#plot distamce map
+#plot distance map
 fig, ax = plt.subplots(1, 2, figsize=(6, 6))
 ax[0].imshow(zero_dist_map)
 ax[1].imshow(one_dist_map)
@@ -274,8 +280,8 @@ ax[1].axis('off')
 # %% md
 ### Comparison:
 # now that the maps have been created it is time to compare the mean distances
-# conidered as features here: dx0 = average ditance of object _x_ to the _zeros_ and dx1 is defined
-# accordingly for the _ones_
+# considered as features here: Note that dx0 is average ditance of object _x_ to the _zeros_ and dx1 is defined
+# accordingly for the _ones_ in the next section of code
 # %% codecell
 d11=[]
 d10=[]
@@ -303,9 +309,23 @@ for img in skel_zeros:
     d00.append(np.sum(zero_dist_map[img])/N)
     d01.append(np.sum(one_dist_map[img])/N)
 
+# %% md
+### Analysis:
+# the result of this feature analysis shows that those features could be used to
+# linearly separate the two glyphs one fro the other. Indeed, as one would expect, the _zeros_ show greater
+# distance to the reference _one_ and a smaller deistance to the reference _zero_,
+# and the same reasoning applies for the _ones_ which show greater proximity to the
+# reference _one_ rather than the reference _zero_. The result is shown below.
+# From this we can conclude that it is important to carefully choose the features
+# if a good separation needs to be achived. Indeed in the example above the inertia of the
+# object alone does not suffice to classify the different objects without mistakes,
+# wherease this approach of realtive distances is more promising in this case.
+
+# %% codecell
 plt.plot(d00,d01,'.b',label='zeros')
 plt.plot(d10,d11,'.r',label='ones')
-plt.xlabel("Distance from object to reference 0")
-plt.ylabel("Distance from object to reference 1")
+plt.xlabel('Distance from object to reference "0"')
+plt.ylabel('Distance from object to reference "1"')
+plt.title("Distance to reference glyphs")
 plt.legend()
 plt.show()
