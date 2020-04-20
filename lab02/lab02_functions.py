@@ -171,6 +171,80 @@ def rotation_invariance(fourier):
     fourier_normalised = fourier * np.exp(-1j*phase)
     return fourier_normalised
 
+
+
+#%% Plotting functions for Illustrating Fourier Descriptors
+
+def plot_FD_rotation_invariance(img, theta, ax): 
+    """
+    Make a plot of the Fourier Descriptors' phases of the contour and of the rotated contour
+
+    Parameters
+    ----------
+    img : 
+        Image.
+    theta : 
+        Angle of the rotation.
+    ax : 
+        Where to plot the data.
+
+    Returns
+    -------
+    None.
+
+    """
+    R = np.array([[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]])
+    X1, Y1 = get_outmost_contour(img)
+    contour1 = np.column_stack([X1, Y1])
+    contour2 = contour1 @ R
+    X2, Y2 = contour2[:, 0], contour2[:, 1]
+    signal1 = X1 + 1j * Y1
+    fourier1 = np.fft.fft(signal1)
+    signal2 = X2 + 1j * Y2
+    fourier2 = np.fft.fft(signal2)
+    
+    ax.plot(np.angle(fourier1), '-.r', label = 'contour')
+    ax.plot(np.angle(fourier2),'-.b', label = 'rotated contour')
+    ax.set_title('$\\theta$  =  {:.3} rad'.format(theta))
+    ax.legend()
+
+def plot_FD_scaling_invariance(img, alpha, ax):
+    """
+    Make a plot of the Fourier Descriptors' amplitude of the contour and of the scalled contour
+
+
+    Parameters
+    ----------
+    img : 
+        Image
+    alpha : 
+        Scalling factor
+    ax : 
+        Where to plot 
+
+    Returns
+    -------
+    None.
+
+    """
+    R = np.array([[alpha, 0], [0, alpha]])
+    X1, Y1 = get_outmost_contour(img)
+    contour1 = np.column_stack([X1, Y1])
+    contour2 = contour1 @ R
+    X2, Y2 = contour2[:, 0], contour2[:, 1]
+    signal1 = X1 + 1j * Y1
+    fourier1 = np.fft.fft(signal1)
+    signal2 = X2 + 1j * Y2
+    fourier2 = np.fft.fft(signal2)
+    
+    ax.plot(np.abs(fourier1)[1:5], '-.r', label = 'Contour')
+    ax.plot(np.abs(fourier2)[1:5],'-.b', label = 'Scaled contour')
+    ax.set_title('$\\alpha$ = {}'.format(alpha))
+    ax.set_xlabel('First 5 harmonics')
+    ax.legend()
+
+    
+
 # %% Jonas' functions
 """
 Created on Sa Apr 17 2020
