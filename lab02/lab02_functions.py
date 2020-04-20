@@ -42,6 +42,13 @@ def get_contour_image(contour):
     im[X,Y] = 1 
     return im
 
+
+def plot_fourier_descriptors(fourier):
+    fix, axs = plt.subplots(2, 1, figsize=(5, 5))
+    axs[0].plot(np.abs(fourier))
+    axs[1].plot(np.angle(fourier))
+
+
 #%% Edge extraction methods
 
 def get_outmost_contour(img):
@@ -99,18 +106,27 @@ def get_ordered_contour(contour, starting_index):
     
 def get_amplitude_first_descriptors(contour, n_descriptor):
     """
-    Image analysis lab 2 \n
-    Return the amplitude of the N first fourier descriptor for the given contour
+    
 
-    :param contour: ordered [X,Y] arrays containing all the contour pixels
-    :param n_descriptor: number of the n first descriptors (or harmonics) to obtain the amplitudes of.
+    Parameters
+    ----------
+    contour :   [[ïnt]]
+        ordered [X,Y] arrays containing all the contour pixels.
+    n_descriptor : int
+        number of the n first descriptors (or harmonics) to obtain the amplitudes of.
 
-    :return: n * 1 array with the amplitudes of the n first descriptors, also in order
+    Returns
+    -------
+    toReturn : [float]
+        n * 1 array with the amplitudes of the n first descriptors, also in order.
+
     """
+    
     [X,Y] = contour
     signal = X + 1j * Y
     fourier = np.fft.fft(signal)
-    fourier = normalize_fourier(fourier)
+    # fourier = normalize_fourier(fourier)
+    fourier = rotation_invariance(fourier)
     
     amplitudes = np.abs(fourier)
     sorted_amplitudes = np.sort(amplitudes)
@@ -138,3 +154,18 @@ def normalize_fourier(fourier):
     fourier = [f * np.exp(-1j * phi * k) for k, f in enumerate(fourier)]
     # fourier = np.fft.fftshift(fourier)
     return fourier
+
+def rotation_invariance(fourier):
+    indexOfMax = np.argmax(np.abs(fourier))
+    phase = np.angle(fourier)[indexOfMax]
+    fourier_normalised = fourier * np.exp(-1j*phase)
+    return fourier_normalised
+    
+
+    
+    
+    
+    
+    
+    
+    

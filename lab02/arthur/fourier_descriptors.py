@@ -20,27 +20,6 @@ sys.path.append("..")
 importlib.reload(imPro)
 
 
-#%% Example of FFT
-
-# Check out this website: https://courspython.com/fft-introduction.html
-
-n = 100
-t = np.linspace(0,10,n)
-signal = np.sin(2*3.14*t)
-
-fourier = np.fft.fft(signal)
-freqs = np.fft.fftfreq(n,10/n)
-freqs, fourier = np.fft.fftshift(freqs), np.fft.fftshift(fourier)
-amplitudes = np.abs(fourier)
-phases = np.angle(fourier)
-
-plt.figure()
-fig, axs = plt.subplots(2,1)
-axs[0].plot(t,signal)
-axs[1].plot(freqs, amplitudes,'-')
-plt.show()
-
-
 #%% Get the data to use
 
 zeros=imPro.get_zeros()
@@ -73,7 +52,7 @@ axs[1].imshow(im_contour_hat)
 axs[2].plot(amplitudes,'x')
 plt.show()
 
-#%% Classification using FD
+#%% Classification using FD's highest amplitude
 
 amplitudes_zeros = []
 amplitudes_ones = []
@@ -109,3 +88,5 @@ axs[1].set_title('Amplitude of Fourier descriptors')
 axs[1].legend()
 
 plt.show()
+
+#%% Classification using FD's first angles sorted by amplitudes 
