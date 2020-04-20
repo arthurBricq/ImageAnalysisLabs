@@ -28,11 +28,6 @@ ones = imPro.get_ones()
 
 
 
-
-
-
-
-
 # %% Normalize routine
 # https://dsp.stackexchange.com/questions/19982/fourier-descriptors-trying-to-classify-objects
 # http://fourier.eng.hmc.edu/e161/lectures/fd/node1.html
