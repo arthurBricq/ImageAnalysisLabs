@@ -136,8 +136,13 @@ def get_amplitude_first_descriptors(contour, n_descriptor):
     [X,Y] = contour
     signal = X + 1j * Y
     fourier = np.fft.fft(signal)
+<<<<<<< HEAD
     # fourier = normalize_fourier(fourier)
+    fourier = rotation_invariance(fourier)
+  
+    fourier = normalize_fourier(fourier)
 
+>>>>>>> 1d66f8ad7560d4cc166d71633bc1e0bb1211c63b
     amplitudes = np.abs(fourier)
     sorted_amplitudes = np.sort(amplitudes)
     toReturn = sorted_amplitudes[-n_descriptor:]
@@ -158,121 +163,29 @@ def normalize_fourier(fourier):
     out: ndarray
         The normalized fourier Series
     """
-    translation_invariance(fourier)
-    scaling_invariance(fourier)
-    starting_point_invariance(fourier)
+    fourier[0] = 0
+    fourier = fourier / np.abs(fourier[1])
+    phi = np.angle(fourier[1])
+    fourier = [f * np.exp(-1j * phi * k) for k, f in enumerate(fourier)]
+    # fourier = np.fft.fftshift(fourier)
     return fourier
 
+<<<<<<< HEAD
 def rotation_invariance(fourier):
-    """
-    Take the phase of the descriptor with higest amplitude and substract it to all other phases. 
-
-    Parameters
-    ----------
-    fourier : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    fourier_normalised : TYPE
-        DESCRIPTION.
-
-    """
     indexOfMax = np.argmax(np.abs(fourier))
     phase = np.angle(fourier)[indexOfMax]
     fourier_normalised = fourier * np.exp(-1j*phase)
     return fourier_normalised
-
-def scaling_invariance(fourier):
-    r1 = np.abs(fourier[1])
-    fourier = fourier / r1 
-    return fourier
-
-def starting_point_invariance(fourier):
-    phase1 = np.angle(fourier[1])
-    fourier = [f * np.exp(-1j * phase1 * k) for k, f in enumerate(fourier)]
-    return fourier
-
-def translation_invariance(fourier):
-    fourier[0] = 0 
-    return fourier
-    
     
 
-
-
-#%% Plotting functions for Illustrating Fourier Descriptors
-
-def plot_FD_rotation_invariance(img, theta, ax): 
-    """
-    Make a plot of the Fourier Descriptors' phases of the contour and of the rotated contour
-
-    Parameters
-    ----------
-    img : 
-        Image.
-    theta : 
-        Angle of the rotation.
-    ax : 
-        Where to plot the data.
-
-    Returns
-    -------
-    None.
-
-    """
-    R = np.array([[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]])
-    X1, Y1 = get_outmost_contour(img)
-    contour1 = np.column_stack([X1, Y1])
-    contour2 = contour1 @ R
-    X2, Y2 = contour2[:, 0], contour2[:, 1]
-    signal1 = X1 + 1j * Y1
-    fourier1 = np.fft.fft(signal1)
-    signal2 = X2 + 1j * Y2
-    fourier2 = np.fft.fft(signal2)
     
-    ax.plot(np.angle(fourier1), '-.r', label = 'contour')
-    ax.plot(np.angle(fourier2),'-.b', label = 'rotated contour')
-    ax.set_title('$\\theta$  =  {:.3} rad'.format(theta))
-    ax.legend()
-
-def plot_FD_scaling_invariance(img, alpha, ax):
-    """
-    Make a plot of the Fourier Descriptors' amplitude of the contour and of the scalled contour
-
-
-    Parameters
-    ----------
-    img : 
-        Image
-    alpha : 
-        Scalling factor
-    ax : 
-        Where to plot 
-
-    Returns
-    -------
-    None.
-
-    """
-    R = np.array([[alpha, 0], [0, alpha]])
-    X1, Y1 = get_outmost_contour(img)
-    contour1 = np.column_stack([X1, Y1])
-    contour2 = contour1 @ R
-    X2, Y2 = contour2[:, 0], contour2[:, 1]
-    signal1 = X1 + 1j * Y1
-    fourier1 = np.fft.fft(signal1)
-    signal2 = X2 + 1j * Y2
-    fourier2 = np.fft.fft(signal2)
     
-    ax.plot(np.abs(fourier1)[1:5], '-.r', label = 'Contour')
-    ax.plot(np.abs(fourier2)[1:5],'-.b', label = 'Scaled contour')
-    ax.set_title('$\\alpha$ = {}'.format(alpha))
-    ax.set_xlabel('First 5 harmonics')
-    ax.legend()
-
     
-
+    
+    
+    
+    
+=======
 # %% Jonas' functions
 """
 Created on Sa Apr 17 2020
@@ -430,3 +343,4 @@ def dist_map(img,direct_dist=3,diag_dist=4):
             out[x,y]=np.amin(nbh[eval_backward])
 
     return out
+>>>>>>> 1d66f8ad7560d4cc166d71633bc1e0bb1211c63b
