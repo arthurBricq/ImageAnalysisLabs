@@ -470,3 +470,107 @@ def dist_map(img,direct_dist=3,diag_dist=4):
             out[x,y]=np.amin(nbh[eval_backward])
 
     return out
+
+
+def binarize(image):
+    t =skimage.filters.threshold_mean(image)
+    return image>t
+
+#%% Region based Descriptors
+
+def area(image):
+    """
+    Returns the area of the number
+    :param image:  grayscale image of a number (white number on black background)
+    """
+    area=np.count_nonzero(image)
+    return area
+
+
+def perimeter(image):
+    """
+    Returns the perimeter of the number
+    :param image:  grayscale image of a number (white number on black background)
+    """
+    perimeter=np.array(get_outmost_contour(image)).shape[1]
+    return perimeter
+
+def area_polygon(image):
+    """
+    Returns the area in the polygon connecting the contour points of the number
+    :param image:  grayscale image of a number (white number on black background)
+    """
+    nb_inside= area(image)-perimeter(image)
+    areap= perimeter(image)/2 +nb_inside -1
+    return areap
+
+def compacity(image):
+    """
+    Returns the compacity of the number
+    :param image:  grayscale image of a number (white number on black background)
+    """
+    return perimeter(image)**2/area(image)
+
+def projection(image):
+    proj_x=[]
+    proj_y=[]
+    for i in range(image[0].shape[0]) :
+        proj_y.append(np.count_nonzero(image[i]))
+    for j in range (image[1].shape[0]):
+        proj_x.append(np.count_nonzero(image[j]))
+    return proj_x,proj_y
+
+def moment (image,i,j) :
+    m= 0
+    for k in range(image[0].shape[0]):
+        for l in range(image[0].shape[0]):
+            m=m+pow(k,i)*pow(l,j)*image[k,l]/256
+    return m
+
+def centers_gravity (image):
+    kc=moment(image,1,0)/moment(image,0,0)
+    lc=moment(image,0,1)/moment(image,0,0)
+    return [kc,lc]
+
+def centered_moments(image,i,j,scaling_invariant=False) : #invariant to translation : center of gravity as origin
+    mc= 0
+    for k in range(image[0].shape[0]):
+        for l in range(image[0].shape[0]):
+            mc=mc+pow(k-centers_gravity(image)[0],i)*pow(l-centers_gravity(image)[1],j)*image[k,l]/256
+    if scaling_invariant :
+        gamma=int((i+j)/2)+1
+        mc=centered_moments(image,i,j)/centered_moments(image,0,0)**gamma
+    return mc
+
+def standard_centered_moments(image,order=1,scaling_invariant=False):
+    if (order==1):
+        return centered_moments(image,2,0,scaling_invariant)+centered_moments(image,0,2,scaling_invariant)
+    if (order==2):
+        return (centered_moments(image,2,0,scaling_invariant)-centered_moments(image,0,2,scaling_invariant))**2 +4*centered_moments(image,1,1,scaling_invariant)
+    if (order==3):
+        return (centered_moments(image,3,0,scaling_invariant)-3*centered_moments(image,1,2,scaling_invariant))**2 + (3*centered_moments(image,2,1,scaling_invariant)-centered_moments(image,0,3,scaling_invariant))**2
+    if (order==4) :
+        return (centered_moments(image,3,0,scaling_invariant)+centered_moments(image,1,2,scaling_invariant))**2 + (centered_moments(image,2,1,scaling_invariant)+centered_moments(image,0,3,scaling_invariant))**2  
+    return 
+
+
+
+def region_based_features(images):
+    """
+    Returns an array of region based features for all the images in the input
+    
+    :param images:  group of grayscale images of numbers
+    :return: param_images np.array of all the region based features of the input images
+    """
+    param_images = []
+    for img in images:
+        binary=binarize(img)
+        param=[]
+        param.append(area(binary))
+        param.append(perimeter(img))
+        param.append(compacity(img))
+        #param.append(standard_centered_moments(img,1,False))
+        #param.append(standard_centered_moments(img,1,True))
+        param_images.append(param)
+    param_images = np.array(param_images)
+    return param_images
