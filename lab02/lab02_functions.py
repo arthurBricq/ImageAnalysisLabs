@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 import skimage, skimage.feature, skimage.morphology
+import skimage.morphology as morph
 
 
 #%% Functions to get the data
