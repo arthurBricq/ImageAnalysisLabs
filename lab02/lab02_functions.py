@@ -115,9 +115,9 @@ def get_ordered_contour(contour, starting_index):
 
 #%% Fourier Descriptors
 
-def get_amplitude_first_descriptors(contour, n_descriptor):
+def get_amplitude_first_descriptors(fourier, n_descriptor = 4):
     """
-    
+    Returns the N-higesth amplitudes of the fourier descriptors 
 
     Parameters
     ----------
@@ -133,11 +133,6 @@ def get_amplitude_first_descriptors(contour, n_descriptor):
 
     """
     
-    [X,Y] = contour
-    signal = X + 1j * Y
-    fourier = np.fft.fft(signal)
-    # fourier = normalize_fourier(fourier)
-
     amplitudes = np.abs(fourier)
     sorted_amplitudes = np.sort(amplitudes)
     toReturn = sorted_amplitudes[-n_descriptor:]
@@ -197,11 +192,8 @@ def translation_invariance(fourier):
     fourier[0] = 0 
     return fourier
     
-    
 
-
-
-#%% Plotting functions for Illustrating Fourier Descriptors
+#%% Plotting functions for Illustrating Fourier Descriptors 
 
 def plot_FD_rotation_invariance(img, theta, ax): 
     """

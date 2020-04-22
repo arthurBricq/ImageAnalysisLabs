@@ -115,7 +115,6 @@ fourier2_n = imPro.scaling_invariance(fourier2)
 fourier1_n = imPro.starting_point_invariance(fourier1_n)
 fourier2_n = imPro.starting_point_invariance(fourier2_n)
 
-
 # Plotting all this 
 fig, axs = plt.subplots(1,2,figsize=(10,5))
 axs[0].plot(np.angle(fourier1_n), label = 'fourier')
@@ -129,22 +128,115 @@ axs[1].legend()
 # %% Trying some robust classification 
 
 
-def get_feature_vector(img): 
+def get_feature_vector(img, invariances): 
+    """
+    Returns the feature vector for the given image with the given invariances applied to the Fourier descriptors.
+    
+
+    Parameters
+    ----------
+    img : 
+        Image to be analysed (from this image, the contour is extracted and then Fourier Descriptors are created)
+    invariances : 
+        Array of four boolean elements, as follow [mathrm{Re}]
+
+    Returns
+    -------
+    x : 
+        The feature vector of our Fourier Descriptors
+
+    """
+    rot, scal, trans, SP = invariances
     [X,Y] = imPro.get_outmost_contour(img)
     signal = X + 1j * Y
     fourier = np.fft.fft(signal)
-    # fourier = imPro.rotation_invariance(fourier)
-    fourier = imPro.scaling_invariance(fourier)
+    
+    if rot: fourier = imPro.rotation_invariance(fourier)
+    if scal: fourier = imPro.scaling_invariance(fourier)
+    if trans: fourier = imPro.translation_invariance(fourier)
+    if SP: fourier = imPro.starting_point_invariance(fourier)
+    
     f0 = fourier[0]
     f1 = fourier[1]
+    f2 = fourier[2]    
     f1n= fourier[-1]
-    t = np.abs(fourier[1]-fourier[-1])
-    x = [ np.abs(f1n), np.abs(f1), t, f1.real, np.abs(f1)]
+
+    x = [f1.real, np.abs(f1), np.abs(f1n),np.abs(f1-f1n),f2.real,f0.real, f0.imag]
     return x 
 
 
+#%% Plotting results 
+    
+# =============================================================================
+# We want to make a plot illustrating several cases, and some of them including different feature vectors. 
+# =============================================================================
+
+class PlotData:
+    """
+    This class represents generic data to make 1 plot of 2 features of all images.
+    I have used this class to make a nice plot which really illustrates easily different cases.
+    The array 'invariances' is used within the function 'get_feature_vector'
+    """
+    def __init__(self, name, invariances, features):
+        self.name = name
+        self.invariances = invariances
+        self.features = features
+        
+    def get_features_label(self): 
+        print(self.features)
+        l1 = self._get_feature_label(self.features[0])
+        l2 = self._get_feature_label(self.features[1])
+        return [l1,l2]
+        
+        
+    def _get_feature_label(self,feature):
+        if feature == 0: return "$\\mathrm{Re}f_1$"
+        if feature == 1: return "$|f_1|$"
+        if feature == 2: return "$|f_{-1}|$"
+        if feature == 3: return "$|f_1-f_{-1}|$"
+        if feature == 4: return "$\\mathrm{Im}f_2$"
+        if feature == 5: return "$\\mathrm{Re}f_0$"
+        if feature == 6: return "$\\mathrm{Im}f_0$"
+    
+    
+# 1. Construction of the experiment (data-model to generate plot easily)
+plots_to_make = [] 
+plots_to_make.append(PlotData("Not invariant", [0,0,0,0], [0,1]))
+plots_to_make.append(PlotData("Not invariant", [0,0,0,0], [5,6]))
+plots_to_make.append(PlotData("Rotation invariant", [1,0,0,0], [0, 1]))
+plots_to_make.append(PlotData("Starting-Point invariant", [0,0,0,1], [3, 0]))
+plots_to_make.append(PlotData("Translation + Starting-Point + Scalling", [0,1,1,1], [3, 2]))
+plots_to_make.append(PlotData("Starting-Point invariant", [0,0,0,1], [3, 2]))
+plots_to_make.append(PlotData("Translation + Starting-Point + Scalling", [0,1,1,1], [3, 4]))
+
+fig, axs = plt.subplots(2,4,figsize = (25,10))
+axs = axs.ravel()
+for i, plotData in enumerate(plots_to_make):
+    x_zeros = []
+    x_ones = []
+    ax = axs[i]
+    for img in zeros: x_zeros.append(get_feature_vector(img, plotData.invariances))
+    for img in ones: x_ones.append(get_feature_vector(img, plotData.invariances))
+    x_zeros = np.array(x_zeros)
+    x_ones = np.array(x_ones)
+    ax.plot(x_zeros[:,plotData.features[0]], x_zeros[:,plotData.features[1]],'.b', label = 'zeros')
+    ax.plot(x_ones[:,plotData.features[0]], x_ones[:,plotData.features[1]],'.r', label = 'ones')
+    labels = plotData.get_features_label()
+    ax.set_xlabel(labels[0])
+    ax.set_ylabel(labels[1])
+    ax.set_title(plotData.name)
+    ax.legend()
+fig.subplots_adjust(hspace=0.4)
+fig.delaxes(axs[-1])
+fig.suptitle("Projection of features, for different images and different normalization techniques")
+    
+    
+    
+
+#%% Code to construct one feature vector
+
 # Feature vectors construction
-x_zeros = []
+x_zeros_ = []
 x_ones = []
 for img in zeros: x_zeros.append(get_feature_vector(img))
 for img in ones: x_ones.append(get_feature_vector(img))
@@ -155,18 +247,18 @@ x_ones = np.array(x_ones)
 plt.figure()
 fig, axs = plt.subplots(2,1, figsize = (8,12))
 
-axs[0].plot(x_zeros[:,0], x_zeros[:,1],'.b', label = 'zeros')
-axs[0].plot(x_ones[:,0], x_ones[:,1],'.r', label = 'ones')
-axs[0].set_xlabel('Highest amplitude')
-axs[0].set_ylabel('Second highest amplitude')
-axs[0].set_title('Amplitude of Fourier descriptors')
+# Select the features to use (within the feature vector) 
+x0, x1, x2, x3 = 0, 1, 2, 3
+axs[0].plot(x_zeros[:,x0], x_zeros[:,x1],'.b', label = 'zeros')
+axs[0].plot(x_ones[:,x0], x_ones[:,x1],'.r', label = 'ones')
+axs[0].set_xlabel('x0')
+axs[0].set_ylabel('x1')
 axs[0].legend()
 
-axs[1].plot(x_zeros[:,2], x_zeros[:,3],'.b', label = 'zeros')
-axs[1].plot(x_ones[:,2], x_ones[:,3],'.r', label = 'ones')
-axs[1].set_xlabel('Second highest amplitude')
-axs[1].set_ylabel('Third highest amplitude')
-axs[1].set_title('Amplitude of Fourier descriptors')
+axs[1].plot(x_zeros[:,x2], x_zeros[:,x3],'.b', label = 'zeros')
+axs[1].plot(x_ones[:,x2], x_ones[:,x3],'.r', label = 'ones')
+axs[1].set_xlabel('x2')
+axs[1].set_ylabel('x3')
 axs[1].legend()
 
 plt.show()

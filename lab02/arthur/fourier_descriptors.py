@@ -53,18 +53,21 @@ axs[2].plot(amplitudes,'x')
 plt.show()
 
 #%% Classification using FD's highest amplitude
-
 amplitudes_zeros = []
 amplitudes_ones = []
 
 for img in zeros:
-    contour = imPro.get_outmost_contour(img)
-    amplitudes = imPro.get_amplitude_first_descriptors(contour, n_descriptor = 4)
+    [X,Y] = imPro.get_outmost_contour(img)    
+    signal = X + 1j * Y
+    fourier = np.fft.fft(signal)
+    amplitudes = imPro.get_amplitude_first_descriptors(fourier, n_descriptor = 4)
     amplitudes_zeros.append(amplitudes)
 
 for img in ones:
-    contour = imPro.get_outmost_contour(img)
-    amplitudes = imPro.get_amplitude_first_descriptors(contour, n_descriptor = 4)
+    [X,Y] = imPro.get_outmost_contour(img)
+    signal = X + 1j * Y
+    fourier = np.fft.fft(signal)
+    amplitudes = imPro.get_amplitude_first_descriptors(fourier, n_descriptor = 4)
     amplitudes_ones.append(amplitudes)
 
 amplitudes_zeros = np.array(amplitudes_zeros)
@@ -88,5 +91,4 @@ axs[1].set_title('Amplitude of Fourier descriptors')
 axs[1].legend()
 
 plt.show()
-
 #%% Classification using FD's first angles sorted by amplitudes 
