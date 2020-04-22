@@ -13,6 +13,7 @@ sys.path.append("..")
 
 
 import lab02_functions as imPro
+from imPro import PlotData
 import skimage
 import skimage.transform
 from numpy.fft import fft
@@ -128,42 +129,6 @@ axs[1].legend()
 # %% Trying some robust classification 
 
 
-def get_feature_vector(img, invariances): 
-    """
-    Returns the feature vector for the given image with the given invariances applied to the Fourier descriptors.
-    
-
-    Parameters
-    ----------
-    img : 
-        Image to be analysed (from this image, the contour is extracted and then Fourier Descriptors are created)
-    invariances : 
-        Array of four boolean elements, as follow [mathrm{Re}]
-
-    Returns
-    -------
-    x : 
-        The feature vector of our Fourier Descriptors
-
-    """
-    rot, scal, trans, SP = invariances
-    [X,Y] = imPro.get_outmost_contour(img)
-    signal = X + 1j * Y
-    fourier = np.fft.fft(signal)
-    
-    if rot: fourier = imPro.rotation_invariance(fourier)
-    if scal: fourier = imPro.scaling_invariance(fourier)
-    if trans: fourier = imPro.translation_invariance(fourier)
-    if SP: fourier = imPro.starting_point_invariance(fourier)
-    
-    f0 = fourier[0]
-    f1 = fourier[1]
-    f2 = fourier[2]    
-    f1n= fourier[-1]
-
-    x = [f1.real, np.abs(f1), np.abs(f1n),np.abs(f1-f1n),f2.real,f0.real, f0.imag]
-    return x 
-
 
 #%% Plotting results 
     
@@ -171,32 +136,6 @@ def get_feature_vector(img, invariances):
 # We want to make a plot illustrating several cases, and some of them including different feature vectors. 
 # =============================================================================
 
-class PlotData:
-    """
-    This class represents generic data to make 1 plot of 2 features of all images.
-    I have used this class to make a nice plot which really illustrates easily different cases.
-    The array 'invariances' is used within the function 'get_feature_vector'
-    """
-    def __init__(self, name, invariances, features):
-        self.name = name
-        self.invariances = invariances
-        self.features = features
-        
-    def get_features_label(self): 
-        print(self.features)
-        l1 = self._get_feature_label(self.features[0])
-        l2 = self._get_feature_label(self.features[1])
-        return [l1,l2]
-        
-        
-    def _get_feature_label(self,feature):
-        if feature == 0: return "$\\mathrm{Re}f_1$"
-        if feature == 1: return "$|f_1|$"
-        if feature == 2: return "$|f_{-1}|$"
-        if feature == 3: return "$|f_1-f_{-1}|$"
-        if feature == 4: return "$\\mathrm{Im}f_2$"
-        if feature == 5: return "$\\mathrm{Re}f_0$"
-        if feature == 6: return "$\\mathrm{Im}f_0$"
     
     
 # 1. Construction of the experiment (data-model to generate plot easily)
@@ -209,14 +148,15 @@ plots_to_make.append(PlotData("Translation + Starting-Point + Scalling", [0,1,1,
 plots_to_make.append(PlotData("Starting-Point invariant", [0,0,0,1], [3, 2]))
 plots_to_make.append(PlotData("Translation + Starting-Point + Scalling", [0,1,1,1], [3, 4]))
 
+
 fig, axs = plt.subplots(2,4,figsize = (25,10))
 axs = axs.ravel()
 for i, plotData in enumerate(plots_to_make):
     x_zeros = []
     x_ones = []
     ax = axs[i]
-    for img in zeros: x_zeros.append(get_feature_vector(img, plotData.invariances))
-    for img in ones: x_ones.append(get_feature_vector(img, plotData.invariances))
+    for img in zeros: x_zeros.append(imPro.get_feature_vector(img, plotData.invariances))
+    for img in ones: x_ones.append(imPro.get_feature_vector(img, plotData.invariances))
     x_zeros = np.array(x_zeros)
     x_ones = np.array(x_ones)
     ax.plot(x_zeros[:,plotData.features[0]], x_zeros[:,plotData.features[1]],'.b', label = 'zeros')

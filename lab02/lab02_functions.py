@@ -60,7 +60,7 @@ def plot_fourier_descriptors(fourier):
     axs[1].plot(np.angle(fourier))
 
 
-#%% Edge extraction methods
+#%% Contour extraction methods
 
 def get_outmost_contour(img):
     """
@@ -139,25 +139,6 @@ def get_amplitude_first_descriptors(fourier, n_descriptor = 4):
     toReturn = toReturn[np.arange(toReturn.size-1,-1,-1)]
     return toReturn
 
-def normalize_fourier(fourier):
-    """
-    This function will perform a normalization of the Fourier Series.
-
-    Parameters
-    ----------
-    fourier :  ndarray
-        the fourier Series to be normalized
-
-    Returns
-    -------
-    out: ndarray
-        The normalized fourier Series
-    """
-    translation_invariance(fourier)
-    scaling_invariance(fourier)
-    starting_point_invariance(fourier)
-    return fourier
-
 def rotation_invariance(fourier):
     """
     Take the phase of the descriptor with higest amplitude and substract it to all other phases. 
@@ -191,6 +172,44 @@ def starting_point_invariance(fourier):
 def translation_invariance(fourier):
     fourier[0] = 0 
     return fourier
+
+
+def get_feature_vector(img, invariances): 
+    """
+    Returns the feature vector for the given image with the given invariances applied to the Fourier descriptors.
+    
+
+    Parameters
+    ----------
+    img : 
+        Image to be analysed (from this image, the contour is extracted and then Fourier Descriptors are created)
+    invariances : 
+        Array of four boolean elements, as follow [mathrm{Re}]
+
+    Returns
+    -------
+    x : 
+        The feature vector of our Fourier Descriptors
+
+    """
+    rot, scal, trans, SP = invariances
+    [X,Y] = get_outmost_contour(img)
+    signal = X + 1j * Y
+    fourier = np.fft.fft(signal)
+    
+    if rot: fourier = rotation_invariance(fourier)
+    if scal: fourier = scaling_invariance(fourier)
+    if trans: fourier = translation_invariance(fourier)
+    if SP: fourier = starting_point_invariance(fourier)
+    
+    f0 = fourier[0]
+    f1 = fourier[1]
+    f2 = fourier[2]    
+    f1n= fourier[-1]
+
+    x = [f1.real, np.abs(f1), np.abs(f1n),np.abs(f1-f1n),f2.real,f0.real, f0.imag]
+    return x 
+
     
 
 #%% Plotting functions for Illustrating Fourier Descriptors 
@@ -264,6 +283,34 @@ def plot_FD_scaling_invariance(img, alpha, ax):
     ax.legend()
 
     
+#%% Class used as Plotting data model
+    
+    
+class PlotData:
+    """
+    This class represents generic data to make 1 plot of 2 features of all images.
+    I have used this class to make a nice plot which really illustrates easily different cases.
+    The array 'invariances' is used within the function 'get_feature_vector'
+    """
+    def __init__(self, name, invariances, features):
+        self.name = name
+        self.invariances = invariances
+        self.features = features
+        
+    def get_features_label(self): 
+        l1 = self._get_feature_label(self.features[0])
+        l2 = self._get_feature_label(self.features[1])
+        return [l1,l2]
+        
+        
+    def _get_feature_label(self,feature):
+        if feature == 0: return "$\\mathrm{Re}f_1$"
+        if feature == 1: return "$|f_1|$"
+        if feature == 2: return "$|f_{-1}|$"
+        if feature == 3: return "$|f_1-f_{-1}|$"
+        if feature == 4: return "$\\mathrm{Im}f_2$"
+        if feature == 5: return "$\\mathrm{Re}f_0$"
+        if feature == 6: return "$\\mathrm{Im}f_0$"
 
 # %% Jonas' functions
 """

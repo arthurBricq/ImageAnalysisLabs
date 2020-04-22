@@ -91,4 +91,37 @@ axs[1].set_title('Amplitude of Fourier descriptors')
 axs[1].legend()
 
 plt.show()
+
 #%% Classification using FD's first angles sorted by amplitudes 
+
+amplitudes_zeros,amplitudes_ones = [],[]
+for img in zeros:
+    contour = imPro.get_outmost_contour(img)
+    amplitudes = imPro.get_amplitude_first_descriptors(contour)
+    amplitudes_zeros.append(amplitudes)
+for img in ones:
+    contour = imPro.get_outmost_contour(img)
+    amplitudes = imPro.get_amplitude_first_descriptors(contour)
+    amplitudes_ones.append(amplitudes)
+
+amplitudes_zeros = np.array(amplitudes_zeros)
+amplitudes_ones = np.array(amplitudes_ones)
+
+plt.figure()
+fig, axs = plt.subplots(1,2, figsize = (15,8))
+
+axs[0].plot(amplitudes_zeros[:,0], amplitudes_zeros[:,1],'.b', label = 'zeros')
+axs[0].plot(amplitudes_ones[:,0], amplitudes_ones[:,1],'.r', label = 'ones')
+axs[0].set_xlabel('Highest amplitude')
+axs[0].set_ylabel('Second highest amplitude')
+axs[0].set_title('Amplitude of Fourier descriptors')
+axs[0].legend()
+
+axs[1].plot(amplitudes_zeros[:,0], amplitudes_zeros[:,2],'.b', label = 'zeros')
+axs[1].plot(amplitudes_ones[:,0], amplitudes_ones[:,2],'.r', label = 'ones')
+axs[1].set_xlabel('Highest amplitude')
+axs[1].set_ylabel('Third highest amplitude')
+axs[1].set_title('Amplitude of Fourier descriptors')
+axs[1].legend()
+
+plt.show()
