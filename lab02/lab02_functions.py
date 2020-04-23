@@ -46,20 +46,6 @@ def get_ones():
 
     return ones_im
 
-#%% Plotting function
-
-def get_contour_image(contour):
-    [X,Y] = contour
-    im = np.zeros((28, 28))
-    im[X,Y] = 1
-    return im
-
-
-def plot_fourier_descriptors(fourier):
-    fix, axs = plt.subplots(2, 1, figsize=(5, 5))
-    axs[0].plot(np.abs(fourier))
-    axs[1].plot(np.angle(fourier))
-
 
 #%% Contour extraction methods
 
@@ -214,6 +200,22 @@ def get_feature_vector(img, invariances):
     
 
 #%% Plotting functions for Illustrating Fourier Descriptors 
+
+def get_contour_image(contour):
+    """
+    This method constructs an image containing the specified contour. Used for debuging purposes ! 
+    """
+    [X,Y] = contour
+    im = np.zeros((28, 28))
+    im[X,Y] = 1
+    return im
+
+
+def plot_fourier_descriptors(fourier):
+    fix, axs = plt.subplots(2, 1, figsize=(5, 5))
+    axs[0].plot(np.abs(fourier))
+    axs[1].plot(np.angle(fourier))
+
 
 def plot_FD_rotation_invariance(img, theta, ax): 
     """
@@ -554,23 +556,3 @@ def standard_centered_moments(image,order=1,scaling_invariant=False):
     return 
 
 
-
-def region_based_features(images):
-    """
-    Returns an array of region based features for all the images in the input
-    
-    :param images:  group of grayscale images of numbers
-    :return: param_images np.array of all the region based features of the input images
-    """
-    param_images = []
-    for img in images:
-        binary=binarize(img)
-        param=[]
-        param.append(area(binary))
-        param.append(perimeter(img))
-        param.append(compacity(img))
-        #param.append(standard_centered_moments(img,1,False))
-        #param.append(standard_centered_moments(img,1,True))
-        param_images.append(param)
-    param_images = np.array(param_images)
-    return param_images
