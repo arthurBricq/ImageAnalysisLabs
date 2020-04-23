@@ -154,6 +154,27 @@ def dist_map(img,direct_dist=3,diag_dist=4):
 
     return out
 
+
+def plot_img_stacks(concat_img_stack, n_stacks=1, fig_size=None):
+    _,_,nz=concat_img_stack.shape
+    n_cols=nz/n_stacks
+
+    if fig_size is not None:
+        fig, axes = plt.subplots(n_stacks, n_cols, figsize=fig_size)
+    else:
+        fig, axes = plt.subplots(n_stacks, n_cols)
+
+    for i in range(n_stacks):
+        for j in range(n_cols):
+            ax=axes[i][j];
+            im=concat_img_stack[n_cols*j+i]
+            ax.imshow(im, cmap='gray')
+            ax.axis('off')
+
+
+
+
+
 # %% md
 ### Skeletonize the images:
 
