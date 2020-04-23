@@ -6,12 +6,21 @@ Created on Thu Apr 23 20:43:41 2020
 @author: arthur
 """
 
-import sys
-sys.path.append("..")
-import lab02_functions as imPro
+import importlib
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
+sys.path.append("..")
+
+
+import lab02_functions as imPro
 from lab02_functions import PlotData
+import skimage
+import skimage.transform
+from numpy.fft import fft
+
+importlib.reload(imPro)
+
 
 #%% Load the data 
 
@@ -22,13 +31,13 @@ threes = imPro.load_img_seq(file_path='lab-02-data/part2/3')
 
 #%% Just to make sure every thing works fine 
 
-
-
-
-img = twos[0]
-contour = imPro.get_outmost_contour(img)
-img_c = imPro.get_contour_image(contour)
-plt.imshow(img_c)
+imgs = [zeros[0], ones[1], twos[2], threes[0]]
+fig, axs = plt.subplots(1,4,figsize=(10,5))
+for img, ax in zip(imgs, axs):
+    contour = imPro.get_outmost_contour(img)
+    img_c = imPro.get_contour_image(contour)
+    ax.imshow(img_c)
+fig.suptitle('Extracted contours for 4 different images of the dataset')
 
 
 #%% FD
@@ -83,8 +92,9 @@ def region_based_features(images):
         param.append(imPro.area(binary))
         param.append(imPro.perimeter(img))
         param.append(imPro.compacity(img))
-        #param.append(standard_centered_moments(img,1,False))
-        #param.append(standard_centered_moments(img,1,True))
+        inertias = imPro.inertia(img)
+        param.append(inertias[0])
+        param.append(inertias[1])
         param_images.append(param)
     param_images = np.array(param_images)
     return param_images
@@ -97,8 +107,7 @@ param_twos = region_based_features(twos)
 param_threes = region_based_features(threes)
 
 
-plt.figure();
-fig, axs = plt.subplots(1,3, figsize = (12,4))
+fig, axs = plt.subplots(1,4, figsize = (16,4))
 axs[0].plot(param_zeros[:,0], param_zeros[:,1],'.b', label = 'zeros')
 axs[0].plot(param_ones[:,0], param_ones[:,1],'.r', label = 'ones')
 axs[0].plot(param_twos[:,0], param_twos[:,1],'.y', label = 'twos')
@@ -115,7 +124,6 @@ axs[1].plot(param_threes[:,0], param_threes[:,2],'.g', label = 'threes')
 axs[1].set_xlabel('Area ')
 axs[1].set_ylabel('Compacity ')
 axs[1].set_title('Region based descriptors')
-axs[1].legend()
 
 axs[2].plot(param_zeros[:,1], param_zeros[:,2],'.b', label = 'zeros')
 axs[2].plot(param_ones[:,1], param_ones[:,2],'.r', label = 'ones')
@@ -124,7 +132,14 @@ axs[2].plot(param_threes[:,1], param_threes[:,2],'.g', label = 'threes')
 axs[2].set_xlabel('Perimeter ')
 axs[2].set_ylabel('Compacity ')
 axs[2].set_title('Region based descriptors')
-axs[2].legend();
+
+axs[3].plot(param_zeros[:,3], param_zeros[:,4],'.b', label = 'zeros')
+axs[3].plot(param_ones[:,3], param_ones[:,4],'.r', label = 'ones')
+axs[3].plot(param_twos[:,3], param_twos[:,4],'.y', label = 'twos')
+axs[3].plot(param_threes[:,3], param_threes[:,4],'.g', label = 'threes')
+axs[3].set_xlabel('Principal inertia ')
+axs[3].set_ylabel('Second inertia ')
+axs[3].set_title('Region based descriptors')
 
 
 

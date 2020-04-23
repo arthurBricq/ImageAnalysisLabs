@@ -14,39 +14,6 @@ import skimage, skimage.feature, skimage.morphology
 import skimage.morphology as morph
 
 
-#%% Functions to get the data
-#!!!
-#it makes no sens to define two functions wich do exactly the same...
-#define load_img_seq(file_path) or something like that:
-
-def load_img_seq(file_path):
-    img_names = [nm for nm in os.listdir(file_path) if '.png' in nm]  # make sure to only load .png
-    img_names.sort()  # sort file names
-    ic = skimage.io.imread_collection([os.path.join(file_path, nm) for nm in img_names])
-    img_seq = skimage.io.concatenate_images(ic)
-    return img_seq
-#!!!
-
-def get_zeros():
-    #  Load zeros
-    zeros_path = 'lab-02-data/part1/0'
-    zeros_names = [nm for nm in os.listdir(zeros_path) if '.png' in nm]  # make sure to only load .png
-    zeros_names.sort()  # sort file names
-    ic = skimage.io.imread_collection([os.path.join(zeros_path, nm) for nm in zeros_names])
-    zeros_im = skimage.io.concatenate_images(ic)
-    return zeros_im
-
-def get_ones():
-    #  Load ones
-    ones_path = 'lab-02-data/part1/1'
-    ones_names = [nm for nm in os.listdir(ones_path) if '.png' in nm]  # make sure to only load .png
-    ones_names.sort()  # sort file names
-    ic = skimage.io.imread_collection(([os.path.join(ones_path, nm) for nm in ones_names]))
-    ones_im = skimage.io.concatenate_images(ic)
-
-    return ones_im
-
-
 #%% Contour extraction methods
 
 def get_outmost_contour(img):
@@ -104,7 +71,7 @@ def get_ordered_contour(contour, starting_index):
 
 def get_amplitude_first_descriptors(fourier, n_descriptor = 4):
     """
-    Returns the N-higesth amplitudes of the fourier descriptors 
+    Returns the N-higesth amplitudes of the fourier descriptors
 
     Parameters
     ----------
@@ -119,7 +86,7 @@ def get_amplitude_first_descriptors(fourier, n_descriptor = 4):
         n * 1 array with the amplitudes of the n first descriptors, also in order.
 
     """
-    
+
     amplitudes = np.abs(fourier)
     sorted_amplitudes = np.sort(amplitudes)
     toReturn = sorted_amplitudes[-n_descriptor:]
@@ -128,7 +95,7 @@ def get_amplitude_first_descriptors(fourier, n_descriptor = 4):
 
 def rotation_invariance(fourier):
     """
-    Take the phase of the descriptor with higest amplitude and substract it to all other phases. 
+    Take the phase of the descriptor with higest amplitude and substract it to all other phases.
 
     Parameters
     ----------
@@ -148,7 +115,7 @@ def rotation_invariance(fourier):
 
 def scaling_invariance(fourier):
     r1 = np.abs(fourier[1])
-    fourier = fourier / r1 
+    fourier = fourier / r1
     return fourier
 
 def starting_point_invariance(fourier):
@@ -157,25 +124,25 @@ def starting_point_invariance(fourier):
     return fourier
 
 def translation_invariance(fourier):
-    fourier[0] = 0 
+    fourier[0] = 0
     return fourier
 
 
-def get_feature_vector(img, invariances): 
+def get_feature_vector(img, invariances):
     """
     Returns the feature vector for the given image with the given invariances applied to the Fourier descriptors.
-    
+
 
     Parameters
     ----------
-    img : 
+    img :
         Image to be analysed (from this image, the contour is extracted and then Fourier Descriptors are created)
-    invariances : 
+    invariances :
         Array of four boolean elements, as follow [mathrm{Re}]
 
     Returns
     -------
-    x : 
+    x :
         The feature vector of our Fourier Descriptors
 
     """
@@ -183,23 +150,20 @@ def get_feature_vector(img, invariances):
     [X,Y] = get_outmost_contour(img)
     signal = X + 1j * Y
     fourier = np.fft.fft(signal)
-    
+
     if rot: fourier = rotation_invariance(fourier)
     if scal: fourier = scaling_invariance(fourier)
     if trans: fourier = translation_invariance(fourier)
     if SP: fourier = starting_point_invariance(fourier)
-    
+
     f0 = fourier[0]
     f1 = fourier[1]
-    f2 = fourier[2]    
+    f2 = fourier[2]
     f1n= fourier[-1]
 
     x = [f1.real, np.abs(f1), np.abs(f1n),np.abs(f1-f1n),f2.real,f0.real, f0.imag]
-    return x 
+    return x
 
-    
-
-#%% Plotting functions for Illustrating Fourier Descriptors 
 
 def get_contour_image(contour):
     """
@@ -217,17 +181,19 @@ def plot_fourier_descriptors(fourier):
     axs[1].plot(np.angle(fourier))
 
 
-def plot_FD_rotation_invariance(img, theta, ax): 
+#%% Plotting functions for Illustrating Fourier Descriptors
+
+def plot_FD_rotation_invariance(img, theta, ax):
     """
     Make a plot of the Fourier Descriptors' phases of the contour and of the rotated contour
 
     Parameters
     ----------
-    img : 
+    img :
         Image.
-    theta : 
+    theta :
         Angle of the rotation.
-    ax : 
+    ax :
         Where to plot the data.
 
     Returns
@@ -244,7 +210,7 @@ def plot_FD_rotation_invariance(img, theta, ax):
     fourier1 = np.fft.fft(signal1)
     signal2 = X2 + 1j * Y2
     fourier2 = np.fft.fft(signal2)
-    
+
     ax.plot(np.angle(fourier1), '-.r', label = 'contour')
     ax.plot(np.angle(fourier2),'-.b', label = 'rotated contour')
     ax.set_title('$\\theta$  =  {:.3} rad'.format(theta))
@@ -257,12 +223,12 @@ def plot_FD_scaling_invariance(img, alpha, ax):
 
     Parameters
     ----------
-    img : 
+    img :
         Image
-    alpha : 
+    alpha :
         Scalling factor
-    ax : 
-        Where to plot 
+    ax :
+        Where to plot
 
     Returns
     -------
@@ -278,17 +244,17 @@ def plot_FD_scaling_invariance(img, alpha, ax):
     fourier1 = np.fft.fft(signal1)
     signal2 = X2 + 1j * Y2
     fourier2 = np.fft.fft(signal2)
-    
+
     ax.plot(np.abs(fourier1)[1:5], '-.r', label = 'Contour')
     ax.plot(np.abs(fourier2)[1:5],'-.b', label = 'Scaled contour')
     ax.set_title('$\\alpha$ = {}'.format(alpha))
     ax.set_xlabel('First 5 harmonics')
     ax.legend()
 
-    
+
 #%% Class used as Plotting data model
-    
-    
+
+
 class PlotData:
     """
     This class represents generic data to make 1 plot of 2 features of all images.
@@ -299,13 +265,13 @@ class PlotData:
         self.name = name
         self.invariances = invariances
         self.features = features
-        
-    def get_features_label(self): 
+
+    def get_features_label(self):
         l1 = self._get_feature_label(self.features[0])
         l2 = self._get_feature_label(self.features[1])
         return [l1,l2]
-        
-        
+
+
     def _get_feature_label(self,feature):
         if feature == 0: return "$\\mathrm{Re}f_1$"
         if feature == 1: return "$|f_1|$"
@@ -315,12 +281,24 @@ class PlotData:
         if feature == 5: return "$\\mathrm{Re}f_0$"
         if feature == 6: return "$\\mathrm{Im}f_0$"
 
-# %% Jonas' functions
-"""
-Created on Sa Apr 17 2020
+# %% image stack plotting functions
+def plot_img_stacks(stack_list, nz=1, fig_size=None):
+    ''' plots multiples image stacks with nz frames stored in list
+    '''
+    n_stacks=len(stack_list)
 
-@author: jtu
-"""
+    if fig_size is not None:
+        fig, axes = plt.subplots(n_stacks, nz, figsize=fig_size)
+    else:
+        fig, axes = plt.subplots(n_stacks, nz)
+
+    for i in range(n_stacks):
+        for j in range(nz):
+            ax=axes[i][j];
+            im=stack_list[i][j]
+            ax.imshow(im, cmap='gray')
+            ax.axis('off')
+
 # %% general purpose functions
 def mirrored_periodisation(idx,N):
     ''' mirrored periodisation of signal of length N evaluated at index current_idx
@@ -373,7 +351,8 @@ def load_img_seq(file_path, format='.png'):
 
 # %% object description functions
 def com(img):
-    ''' computes center of mass of image, taking pixel values as weights and x,y
+    '''
+    computes center of mass of image, taking pixel values as weights and x,y
         pixel coordinates as the weights' position
     '''
     nx,ny=img.shape
@@ -513,46 +492,9 @@ def compacity(image):
     """
     return perimeter(image)**2/area(image)
 
-def projection(image):
-    proj_x=[]
-    proj_y=[]
-    for i in range(image[0].shape[0]) :
-        proj_y.append(np.count_nonzero(image[i]))
-    for j in range (image[1].shape[0]):
-        proj_x.append(np.count_nonzero(image[j]))
-    return proj_x,proj_y
-
-def moment (image,i,j) :
-    m= 0
-    for k in range(image[0].shape[0]):
-        for l in range(image[0].shape[0]):
-            m=m+pow(k,i)*pow(l,j)*image[k,l]/256
-    return m
-
-def centers_gravity (image):
-    kc=moment(image,1,0)/moment(image,0,0)
-    lc=moment(image,0,1)/moment(image,0,0)
-    return [kc,lc]
-
-def centered_moments(image,i,j,scaling_invariant=False) : #invariant to translation : center of gravity as origin
-    mc= 0
-    for k in range(image[0].shape[0]):
-        for l in range(image[0].shape[0]):
-            mc=mc+pow(k-centers_gravity(image)[0],i)*pow(l-centers_gravity(image)[1],j)*image[k,l]/256
-    if scaling_invariant :
-        gamma=int((i+j)/2)+1
-        mc=centered_moments(image,i,j)/centered_moments(image,0,0)**gamma
-    return mc
-
-def standard_centered_moments(image,order=1,scaling_invariant=False):
-    if (order==1):
-        return centered_moments(image,2,0,scaling_invariant)+centered_moments(image,0,2,scaling_invariant)
-    if (order==2):
-        return (centered_moments(image,2,0,scaling_invariant)-centered_moments(image,0,2,scaling_invariant))**2 +4*centered_moments(image,1,1,scaling_invariant)
-    if (order==3):
-        return (centered_moments(image,3,0,scaling_invariant)-3*centered_moments(image,1,2,scaling_invariant))**2 + (3*centered_moments(image,2,1,scaling_invariant)-centered_moments(image,0,3,scaling_invariant))**2
-    if (order==4) :
-        return (centered_moments(image,3,0,scaling_invariant)+centered_moments(image,1,2,scaling_invariant))**2 + (centered_moments(image,2,1,scaling_invariant)+centered_moments(image,0,3,scaling_invariant))**2  
-    return 
+def inertia(image):
+    C = object_covar_mat(image)
+    Lambda,_=np.linalg.eig(C)
+    return Lambda
 
 
