@@ -1,7 +1,7 @@
 
 import os
 import scipy.io
-
+import matplotlib.pyplot as plt 
 
 
 
@@ -27,3 +27,13 @@ def get_matlab_data():
     c = matfile['c']
     return a,b,c
 
+
+def plot_training_datasets():
+    a,b,c, = get_matlab_data()
+    datasets = [a,b,c]
+    fig, ax = plt.subplots() 
+    for data in datasets:
+        ax.plot(data[:,0],data[:,1],'.')
+    fig.suptitle('Training datasets for lab03')
+        
+    
