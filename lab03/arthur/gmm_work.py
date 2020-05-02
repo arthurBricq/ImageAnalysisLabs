@@ -18,10 +18,8 @@ import itertools
 from sklearn import mixture
 
 
-#%% Divide a dataset in two parts 
-
-
 # %% Plot the training data sets (there is a function for this too)
+
 a,b,c, = imPro.get_matlab_data()
 datasets = [a,b,c]
 fig, ax = plt.subplots() 
@@ -84,8 +82,9 @@ def mahalanobis(gmm, points):
     """
     mean = gmm.means_[0] 
     cov = np.diag(gmm.covariances_[0])
+    # cov = np.eye(2) 
     v = (points - mean).T
-    y = v.T.dot(cov)    
+    y = v.T.dot(np.linalg.inv(cov))    
     scalar = (y * v.T).sum(axis = 1)
     return np.sqrt(scalar)
 
@@ -97,7 +96,7 @@ datasets = [a,b]
 # 1. Split the data 
 training_sets, testing_sets = [], []
 for dataset in datasets: 
-    training, testing = imPro.split_dataset(dataset = dataset, training_ratio = 0.8)
+    training, testing = imPro.split_dataset(dataset = dataset, training_ratio = 0.7)
     training_sets.append(training)
     testing_sets.append(testing)
     
@@ -136,6 +135,6 @@ for i, dataset in enumerate(testing_sets):
         ax.plot(data[0],data[1],f,color = colors[i])
 ax.set_title('Classification results on the testing set. \n \'x\' stands for missclassification')
 x, y = ax.get_xlim()[0], ax.get_ylim()[1]+1
-ax.text(x + 1, y, "Class 1: {}% of success".format(p1),{'color':'gray'})
-ax.text(x + 1, y - 1, "Class 2: {}% of success".format(p2),{'color':'gray'})
+ax.text(x + 1, y, "Class 1: {} success rate".format(p1),{'color':'gray'})
+ax.text(x + 1, y - 1, "Class 2: {} success rate".format(p2),{'color':'gray'})
 
