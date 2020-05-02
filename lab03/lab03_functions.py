@@ -4,6 +4,19 @@ import scipy.io
 import matplotlib.pyplot as plt 
 
 
+import sys
+sys.path.append("..")
+import lab03_functions as imPro 
+import matplotlib as mpl
+import importlib
+importlib.reload(imPro)
+
+import numpy as np
+import itertools
+from sklearn import mixture
+
+
+#%% Data functions
 
 def get_matlab_data():
     """
@@ -37,3 +50,39 @@ def plot_training_datasets():
     fig.suptitle('Training datasets for lab03')
         
     
+# %% GMM functions 
+
+
+def split_dataset(dataset, training_ratio):
+    """
+    Returns the splitted dataset, into a training dataset and a testing one
+
+    Parameters
+    ----------
+    dataset : np.array of size N x M 
+        Initial data set.
+    training_ratio : float
+        Percentage of data to be used in the training set.
+
+    Returns
+    -------
+    [training_set, testing_set]
+        The splitted arrays.
+
+    """
+    np.random.shuffle(dataset)
+    return np.split(dataset, [int(dataset.shape[0]*training_ratio)], axis = 0)
+
+
+def make_ellipses(gmm, ax, color):
+    covariances = np.diag(gmm.covariances_[0])
+    v, w = np.linalg.eigh(covariances)
+    u = w[0] / np.linalg.norm(w[0])
+    angle = np.arctan2(u[1], u[0])
+    angle = 180 * angle / np.pi  # convert to degrees
+    v = 2. * np.sqrt(2.) * np.sqrt(v)
+    ell = mpl.patches.Ellipse(gmm.means_[0, :2], v[0], v[1],180 + angle, color=color)
+    ell.set_clip_box(ax.bbox)
+    ell.set_alpha(0.5)
+    ax.add_artist(ell)
+    ax.set_aspect('equal', 'datalim')
