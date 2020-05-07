@@ -86,3 +86,27 @@ def make_ellipses(gmm, ax, color):
     ell.set_alpha(0.5)
     ax.add_artist(ell)
     ax.set_aspect('equal', 'datalim')
+    
+    
+def arr2vec(arr):
+    ''' converts array to vector
+    '''
+    vec=np.reshape(arr, arr.size)
+    return vec
+
+def rearrange_img_stack(img_stack,z_stack=True):
+    ''' arranges a image stack in a 2d array where each row is an image
+    '''
+    if z_stack:
+        nx,ny,nz=img_stack.shape
+    else:
+        nz,nx,ny=img_stack.shape
+
+    img_arr=np.zeros((nz,nx*ny))
+
+    for z in range(nz):
+        if z_stack:
+            img_arr[z,:]=arr2vec(img_stack[:,:,z])
+        else:
+            img_arr[z,:]=arr2vec(img_stack[z])
+    return img_arr
