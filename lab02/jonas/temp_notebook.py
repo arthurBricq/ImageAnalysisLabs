@@ -155,25 +155,20 @@ def dist_map(img,direct_dist=3,diag_dist=4):
     return out
 
 
-def plot_img_stacks(concat_img_stack, n_stacks=1, fig_size=None):
-    _,_,nz=concat_img_stack.shape
-    n_cols=nz/n_stacks
+def plot_img_stacks(stack_list, nz=1, fig_size=None):
+    n_stacks=len(stack_list)
 
     if fig_size is not None:
-        fig, axes = plt.subplots(n_stacks, n_cols, figsize=fig_size)
+        fig, axes = plt.subplots(n_stacks, nz, figsize=fig_size)
     else:
-        fig, axes = plt.subplots(n_stacks, n_cols)
+        fig, axes = plt.subplots(n_stacks, nz)
 
     for i in range(n_stacks):
-        for j in range(n_cols):
+        for j in range(nz):
             ax=axes[i][j];
-            im=concat_img_stack[n_cols*j+i]
+            im=stack_list[i][j]
             ax.imshow(im, cmap='gray')
             ax.axis('off')
-
-
-
-
 
 # %% md
 ### Skeletonize the images:
@@ -189,13 +184,7 @@ skel_zeros=skel_img_stack(img_zeros)
 skel_ones=skel_img_stack(img_ones)
 
 #plot skeletons of glyphs
-fig, axes = plt.subplots(2, len(skel_ones), figsize=(12, 3))
-for ax, im in zip(axes[0], skel_zeros):
-    ax.imshow(im, cmap='gray')
-    ax.axis('off')
-for ax, im in zip(axes[1], skel_ones):
-    ax.imshow(im, cmap='gray')
-    ax.axis('off')
+plot_img_stacks([skel_zeros, skel_ones, skel_zeros, skel_ones], nz=len(skel_ones),fig_size=(10,4))
 # %% md
 ### Extract features
 # two features could be the two inertias along the principal axes of the object.
